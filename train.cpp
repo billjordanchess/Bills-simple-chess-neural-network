@@ -12,7 +12,6 @@ int visits[6][64];
 void SetIndex();
 void SetInput(int s, int ep);
 
-int NN_Match(int s);
 float ForwardProg(int s, int ep);
 void BackProg(int s, float target, float output, int ep);
 int NN_Play(int s);
@@ -24,7 +23,6 @@ void UpdateOldWeights();
 
 float GetLearningRate();
 void SetLearningRate(float rate);
-void ResetLearningRate();
 void ReduceLearningRate();
 int GetEpFile();
 
@@ -63,7 +61,7 @@ float best_hidden_bias[HIDDEN_SIZE];
 float best_hidden_weight[HIDDEN_SIZE];
 float best_output_bias;
 
-float learning_rate = 0.02f;//0.005–0.01
+float learning_rate = 0.002f;//0.005â€“0.01
 
 float GetLearningRate()
 {
@@ -73,11 +71,6 @@ float GetLearningRate()
 void SetLearningRate(float rate)
 {
 	learning_rate *= rate;
-}
-
-void ResetLearningRate()
-{
-	learning_rate = 0.001f;
 }
 
 void ReduceLearningRate()
@@ -114,7 +107,7 @@ void SetInput(int s, int ep)
 		game_list[hply].castle_k[WHITE] || game_list[hply].castle_q[WHITE] ||
 		game_list[hply].castle_k[BLACK] || game_list[hply].castle_q[BLACK];
 
-	const bool king_on_right = (col[kingloc[s]] > 3); // files e–h
+	const bool king_on_right = (col[kingloc[s]] > 3); // files eâ€“h
 	const bool do_lr_mirror  = (!king_on_right) && !any_castle && (ep == -1);
 
 	if (s == 0) {
@@ -138,14 +131,6 @@ void SetInput(int s, int ep)
 					input_list[list_count++] = index[s][!color[sq]][board[sq]][Flip[sq]];
 		}
 	}
-}
-
-int NN_Match(int s) 
-{
-	int ep = GetEpFile();
-	float output = ForwardProg(s, ep);
-
-	return (int)(SCALE_CP * output);
 }
 
 int NN_Train(int s, float target) 
@@ -202,7 +187,7 @@ void BackProg(int s, float target, float output, int ep)
 	// ---- Loss/gradients (Huber + linear output) ----
 	float error  = output - target_n;   // normalised units
 	float abs_e  = fabsf(error);
-	const float huber_delta = 0.25f;     // switch point (tune 0.5–2.0 if needed)
+	const float huber_delta = 0.25f;     // switch point (tune 0.5â€“2.0 if needed)
 	float delta_out;
 
 	if (abs_e <= huber_delta) {
@@ -259,44 +244,12 @@ void BackProg(int s, float target, float output, int ep)
 	if (total_error < MAX_ERRORS) errors[total_error++] = error_cp;
 }
 
-int NN_Play(int s) 
-{
-	int ep = GetEpFile();
-	SetInput(s, ep);
-
-	float hidden[HIDDEN_SIZE];
-	for (int i = 0; i < HIDDEN_SIZE; ++i) 
-	{
-		float sum = hidden_bias[i];
-		for (int j = 0; j < list_count; ++j) 
-		{
-			sum += input_weight[input_list[j]][i];
-		}
-
-		if (game_list[hply].castle_k[s]) sum += input_weight[CASTLE_STM_K][i];
-		if (game_list[hply].castle_q[s]) sum += input_weight[CASTLE_STM_Q][i];
-		if (game_list[hply].castle_k[!s]) sum += input_weight[CASTLE_OTM_K][i];
-		if (game_list[hply].castle_q[!s]) sum += input_weight[CASTLE_OTM_Q][i];
-
-		if (ep > -1)
-		{
-			if (col[kingloc[s]] > 3)
-				sum += input_weight[ep_file[ep]][i];
-			else
-				sum += input_weight[ep_file[7 - ep]][i];
-		}
-
-		hidden[i] = (sum > 0.0f) ? sum : 0.0f;
-	}
-
-	float output = output_bias;
-	for (int i = 0; i < HIDDEN_SIZE; i++) 
-		output += hidden_weight[i] * hidden[i];
-
-	if (output > 1.0f) output = 1.0f;
-	if (output < -1.0f) output = -1.0f;
-
-	return (int)(SCALE_CP * output);
+int NN_Play(int s) {
+    int ep = GetEpFile();
+    float out = ForwardProg(s, ep);
+    if (out >  1.0f) out =  1.0f;
+    if (out < -1.0f) out = -1.0f;
+    return (int)(SCALE_CP * out);
 }
 
 int NN_Opponent(int s) 
@@ -315,9 +268,7 @@ int NN_Opponent(int s)
 
 		if (game_list[hply].castle_k[s]) sum += old_input_weight[CASTLE_STM_K][i];
 		if (game_list[hply].castle_q[s]) sum += old_input_weight[CASTLE_STM_Q][i];
-		if (game_list[hply].castle_k[!s]) sum += old_input_weight[CASTLE_OTM_K][i];
-		if (game_list[hply].castle_q[!s]) sum += old_input_weight[CASTLE_OTM_Q][i];
-
+		/*
 		if (ep > -1)
 		{
 			if (col[kingloc[s]] > 3)
@@ -325,8 +276,13 @@ int NN_Opponent(int s)
 			else
 				sum += old_input_weight[ep_file[7 - ep]][i];
 		}
+		*/
+		if (ep > -1) {
+			// no flip here under strategy A
+			sum += old_input_weight[ep_file[ep]][i];
+		}
 
-		hidden[i] = (sum > 0.0f) ? sum : 0.0f;
+		hidden[i] = (sum > 0.0f) ? sum : sum * 0.01f; // leaky ReLU
 	}
 
 	float output = old_output_bias;
@@ -347,7 +303,6 @@ void InitWeights()
 		{
 			input_weight[i][j] = ((float)rand() / RAND_MAX) * 2 - 1;
 			input_weight[i][j] *= sqrt(2.0f / INPUT_SIZE); // He Initialization
-			//input_weight[i][j] = rand_weight() * 0.1f;
 			old_input_weight[i][j] = input_weight[i][j];
 		}
 	}
@@ -361,7 +316,6 @@ void InitWeights()
 	{
 		hidden_weight[j] = ((float)rand() / RAND_MAX) * 2 - 1;
 		hidden_weight[j] *= sqrt(2.0f / HIDDEN_SIZE); // He Initialization
-		//hidden_weight[j] = rand_weight() * 0.1f;
 		old_hidden_weight[j] = hidden_weight[j];
 	}
 	output_bias = 0.0;
@@ -411,9 +365,6 @@ int SaveWeights(int epochs)
 
 	// Write header
 	file << epochs << '\n';
-
-	// Switch to hexfloat for exact representation
-	file << std::hexfloat;
 
 	// input -> hidden
 	for (int x = 0; x < INPUT_SIZE; ++x)
@@ -548,6 +499,8 @@ void CompWeights()
 
 int GetEpFile()
 {
+	if (hply <= 0) return -1;
+
 	int ep = GetHistoryDest(hply - 1);
 
 	if (board[ep] == 0 && abs(GetHistoryStart(hply - 1) - ep) == 16)
@@ -562,88 +515,4 @@ int GetEpFile()
 		}
 	}
 	return -1;
-}
-
-static int write_all(const void* p, size_t sz, size_t n, FILE* f) 
-{
-	return (std::fwrite(p, sz, n, f) == n) ? 0 : -1;
-}
-static int read_all(void* p, size_t sz, size_t n, FILE* f) 
-{
-	return (std::fread(p, sz, n, f) == n) ? 0 : -1;
-}
-
-int SaveWeightsBinary(int epochs, const char* path) 
-{
-	const char* fname = path ? path : "weights.bin";
-	FILE* f = std::fopen(fname, "wb");
-	if (!f) { std::perror("SaveWeightsBinSimple fopen"); return 1; }
-
-	// ASCII header line
-	std::fprintf(f, "epochs %d %d %d\n", epochs, INPUT_SIZE, HIDDEN_SIZE);
-
-	// input -> hidden (row-major: input first)
-	for (int x = 0; x < INPUT_SIZE; ++x) {
-		if (write_all(&input_weight[x][0], sizeof(float), HIDDEN_SIZE, f)) {
-			std::cerr << "Save: input_weight row write failed at row " << x << "\n";
-			std::fclose(f); return 2;
-		}
-	}
-	// hidden -> output
-	if (write_all(&hidden_weight[0], sizeof(float), HIDDEN_SIZE, f)) 
-	{ std::cerr << "Save: hidden_weight\n"; std::fclose(f); return 3; }
-	// hidden bias
-	if (write_all(&hidden_bias[0], sizeof(float), HIDDEN_SIZE, f))   
-	{ std::cerr << "Save: hidden_bias\n";   std::fclose(f); return 4; }
-	// output bias
-	if (write_all(&output_bias, sizeof(float), 1, f))                
-	{ std::cerr << "Save: output_bias\n";  std::fclose(f); return 5; }
-
-	std::fclose(f);
-	return 0;
-}
-
-int LoadWeightsBinary(const char* path) 
-{
-	const char* fname = path ? path : "weights.bin";
-	FILE* f = std::fopen(fname, "rb");
-	if (!f) { std::perror("LoadWeightsBinSimple fopen"); return 1; }
-
-	// Read ASCII header line
-	char header[128] = {0};
-	if (!std::fgets(header, sizeof(header), f)) 
-	{ std::cerr << "Load: header read failed\n"; std::fclose(f); return 2; }
-
-	int epochs = 0, in_sz = 0, hid_sz = 0;
-	int parsed = std::sscanf(header, "epochs %d %d %d", &epochs, &in_sz, &hid_sz);
-	if (parsed < 1) { std::cerr << "Load: bad header format\n"; std::fclose(f); return 3; }
-
-	// Optional size check (keeps you safe from mismatches)
-	if (parsed >= 3) {
-		if (in_sz != INPUT_SIZE || hid_sz != HIDDEN_SIZE) {
-			std::cerr << "Load: size mismatch (file " << in_sz << "x" << hid_sz
-				<< " vs build " << INPUT_SIZE << "x" << HIDDEN_SIZE << ")\n";
-			std::fclose(f); return 4;
-		}
-	}
-
-	// input -> hidden
-	for (int x = 0; x < INPUT_SIZE; ++x) {
-		if (read_all(&input_weight[x][0], sizeof(float), HIDDEN_SIZE, f)) {
-			std::cerr << "Load: input_weight row read failed at row " << x << "\n";
-			std::fclose(f); return 5;
-		}
-	}
-	// hidden -> output
-	if (read_all(&hidden_weight[0], sizeof(float), HIDDEN_SIZE, f)) 
-	{ std::cerr << "Load: hidden_weight\n"; std::fclose(f); return 6; }
-	// hidden bias
-	if (read_all(&hidden_bias[0], sizeof(float), HIDDEN_SIZE, f))   
-	{ std::cerr << "Load: hidden_bias\n";   std::fclose(f); return 7; }
-	// output bias
-	if (read_all(&output_bias, sizeof(float), 1, f))                
-	{ std::cerr << "Load: output_bias\n";  std::fclose(f); return 8; }
-
-	std::fclose(f);
-	return epochs;
 }
