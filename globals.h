@@ -9,7 +9,6 @@
 
 //_CRT_SECURE_NO_WARNINGS
 
-void SetWeights();
 int LoadWeights();
 
 #define U64 unsigned __int64 
@@ -19,9 +18,8 @@ Modes the engine may use.
 #define NN_TRAIN 0
 #define NN_PLAY 1
 #define NN_EVAL 2
-#define NN_MATCH 3
-#define NN_OPPONENT 4
-#define NN_XBOARD 5
+#define NN_OPPONENT 3
+#define NN_XBOARD 4
 /*
 These are the names of the squares.
 */
@@ -129,20 +127,21 @@ Colours
 
 #define HASH_SCORE    100000000
 #define CAPTURE_SCORE 10000000
+
 /*
 move_data[] 
 */
 typedef struct {
-	int start;
-	int dest;
+	int from;
+	int to;
 	int promote;
 	int score;
 	int eval;
   } move_data;
 
 typedef struct {
-	int start;
-	int dest;
+	int from;
+	int to;
 	int promote;
 	int capture;
 	int fifty;
@@ -153,8 +152,8 @@ typedef struct {
 } game;
 
 typedef struct {
-	int start;
-	int dest;
+	int from;
+	int to;
 	int score;
   } table_move;
 
@@ -194,12 +193,13 @@ extern game game_list[GAME_STACK];
 
 extern U64 currentkey,currentlock;
 
-extern int fixed_time;
-extern int fixed_depth;
-extern int max_time;
+//extern int fixed_time;
+//extern int fixed_depth;
+//extern int max_depth;
+//extern int max_time;
 extern int start_time;
 extern int stop_time;
-extern int max_depth;
+
 extern int deep;
 
 extern int qrb_moves[64][9];
@@ -236,11 +236,8 @@ void SetMoves();
 
 //search.cpp
 void think(int); 
-int CaptureSearch(int alpha,int beta,int nn);
 int ReCaptureSearch(int,const int);
-int reps2();
 int Sort(const int from);
-void CheckUp();
 
 //gen.cpp
 void Gen();
@@ -253,8 +250,6 @@ void GenRook(const int x,const int dir);
 void GenQueen(const int x,const int dir);
 void GenKing(const int x);
 void AddMove(const int x,const int sq);
-void AddMove(const int x,const int sq,const int score);
-int GenRecapture(int);
 void GenCaptures();
 void CapPawn(const int x);
 void CapKnight(const int sq);
@@ -274,7 +269,7 @@ void UpdatePiece(const int s,const int p,const int start,const int dest);
 void RemovePiece(const int s,const int p,const int sq);
 void AddPiece(const int s,const int p,const int sq);
 bool MakeMove(const int,const int);
-void TakeBack();
+void UnMakeMove();
 bool MakeRecapture(const int,const int);
 void UnMakeRecapture();
 int GetHistoryStart(const int n);
@@ -296,7 +291,7 @@ int GetTime();
 char *MoveString(int from,int to,int promote);
 int ParseMove(char *s);
 void DisplayBoard();
-int reps();
+int Reps();
 
 bool CanMove();
 
