@@ -1,4 +1,4 @@
-<h3>Bills-simple-chess-neural-network</h3> 
+<h3>Deep Basic</h3> 
 This is a simple chess engine that uses a neural network to select it's moves.
 
 The network is initially untrained, but trains quickly, owing to it's small size.
