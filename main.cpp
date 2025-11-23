@@ -158,11 +158,6 @@ int main()
 			Train();
 			continue;
 		}
-		if (command == "xboard")
-		{
-			xboard();
-			continue;
-		}
 	}
 }
 /*
@@ -767,3 +762,4 @@ char* MoveString(int start, int dest, int promote)
 			row[dest] + 1);
 	return str;
 }
+
