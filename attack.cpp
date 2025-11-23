@@ -10,7 +10,7 @@ It is used to tell if a King is in check, but can have other uses.
 */
 bool Attack(const int s,const int x)
 {
-	if(s==0)
+	if(s==WHITE)
 	{
 		if(row[x]>1)
 		{
@@ -73,7 +73,7 @@ It is used to find the next piece that will recapture, but can have other uses.
 */
 int LowestAttacker(const int s,const int x)
 {
-	if(s==0)
+	if(s==WHITE)
 	{
 		if(row[x]>1)
 		{
