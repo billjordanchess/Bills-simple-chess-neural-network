@@ -10,16 +10,16 @@ UpdatePiece updates the Hash Table key, the board and the table_score (the incre
 evaluation) whenever a piece moves.
 
 */
-void UpdatePiece(const int s,const int piece,const int start,const int dest)
+void UpdatePiece(const int s,const int piece,const int from,const int to)
 {
-	AddKey(s,piece,start);
-	AddKey(s,piece,dest);
-	board[dest]=piece;
-	color[dest]=s;
-	board[start]=EMPTY;
-	color[start]=EMPTY;
+	AddKey(s,piece,from);
+	AddKey(s,piece,to);
+	board[to]=piece;
+	color[to]=s;
+	board[from]=EMPTY;
+	color[from]=EMPTY;
 	if(piece==K)
-		kingloc[s] = dest;
+		kingloc[s] = to;
 }
 /*
 
@@ -59,37 +59,38 @@ MakeMove updates the board whenever a move is made.
 If the King moves two squares then it sees if castling is legal.
 If a pawn moves and changes file s without making a capture, then its an en passant capture
 and the captured pawn is removed.
+<p>
 If the move is a capture then the captured piece is removed from the board.
 If castling permissions are effected then they are updated.
 If a pawn moves to the last rank then its promoted. The pawn is removed and a queen is added.
 If the move leaves the King in check (for example, if a pinned piece moved), then the move is taken back.
 
 */
-bool MakeMove(const int start,const int dest)
+bool MakeMove(const int from,const int to)
 {	
-	if (abs(start - dest) ==2 && board[start] == K)
+	if (abs(from - to) ==2 && board[from] == K)
 	{
-		if (Attack(xside,start)) 
+		if (Attack(xside,from)) 
 			return false;
-		if(dest==G1)
+		if(to==G1)
 		{
 			if (Attack(xside,F1)) 
 				return false;
 			UpdatePiece(side,R,H1,F1);
 		}
-		else if(dest==C1)
+		else if(to==C1)
 		{
 			if (Attack(xside,D1)) 
 				return false;
 			UpdatePiece(side,R,A1,D1);
 		}
-		else if(dest==G8)
+		else if(to==G8)
 		{
 			if (Attack(xside,F8)) 
 				return false;
 			UpdatePiece(side,R,H8,F8);
 		}
-		else if(dest==C8)
+		else if(to==C8)
 		{	
 			if (Attack(xside,D8)) 
 				return false;
@@ -98,9 +99,9 @@ bool MakeMove(const int start,const int dest)
 	}
 
 	g = &game_list[hply];
-	g->start = start;
-	g->dest = dest;
-	g->capture = board[dest];
+	g->from = from;
+	g->to = to;
+	g->capture = board[to];
 	g->fifty = fifty;
 	g->hash = currentkey;
 	g->lock = currentlock;
@@ -116,48 +117,48 @@ bool MakeMove(const int start,const int dest)
 
 	fifty++;
 
-	if (board[start] == P)
+	if (board[from] == P)
 	{
 		fifty = 0;
-		if (board[dest] == EMPTY && col[start] != col[dest])
+		if (board[to] == EMPTY && col[from] != col[to])
 		{
-			RemovePiece(xside,P,dest + ReverseSquare[side]);
+			RemovePiece(xside,P,to + ReverseSquare[side]);
 		}
 	}
 
-	if(board[dest] != EMPTY)
+	if(board[to] != EMPTY)
 	{
 		fifty = 0;
-		RemovePiece(xside,board[dest],dest);
+		RemovePiece(xside,board[to],to);
 	}
 
-	if (board[start]==P && (row[dest]==0 || row[dest]==7))//promotion
+	if (board[from]==P && (row[to]==0 || row[to]==7))//promotion
 	{
-		RemovePiece(side,P,start);
-		AddPiece(side,Q,dest);
+		RemovePiece(side,P,from);
+		AddPiece(side,Q,to);
 		g->promote = Q;
 	}
 	else
 	{
 		g->promote = 0;
-		UpdatePiece(side,board[start],start,dest);
+		UpdatePiece(side,board[from],from,to);
 	}
 
-	if(dest == A1 || start == A1) 
+	if(to == A1 || from == A1) 
 		g->castle_q[WHITE] = 0;
-	else if(dest == H1 || start == H1) 
+	else if(to == H1 || from == H1) 
 		g->castle_k[WHITE] = 0;
-	else if(start == E1)
+	else if(from == E1)
 	{
 		g->castle_q[WHITE] = 0;
 		g->castle_k[WHITE] = 0;
 	}
 
-	if(dest == A8 || start == A8) 
+	if(to == A8 || from == A8) 
 		g->castle_q[BLACK] = 0;
-	else if(dest == H8 || start == H8) 
+	else if(to == H8 || from == H8) 
 		g->castle_k[BLACK] = 0;
-	else if(start == E8)
+	else if(from == E8)
 	{
 		g->castle_q[BLACK] = 0;
 		g->castle_k[BLACK] = 0;
@@ -167,17 +168,17 @@ bool MakeMove(const int start,const int dest)
 	xside ^= 1;
 	if (Attack(side,kingloc[xside])) 
 	{
-		TakeBack();
+		UnMakeMove();
 		return false;
 	}
 	return true;
 }
 /*
 
-TakeBack is the opposite of MakeMove.
+UnMakeMove is the opposite of MakeMove.
 
 */
-void TakeBack()
+void UnMakeMove()
 {	
 	side ^= 1;
 	xside ^= 1;
@@ -185,37 +186,37 @@ void TakeBack()
 	hply--;
 
 	game* m = &game_list[hply];
-	int start = m->start;
-	int dest = m->dest;
+	int from = m->from;
+	int to = m->to;
 
 	fifty = m->fifty;
 
-	if (board[dest]==P && m->capture == EMPTY && col[start] != col[dest])
+	if (board[to]==P && m->capture == EMPTY && col[from] != col[to])
 	{
-		AddPiece(xside,P,dest + ReverseSquare[side]);
+		AddPiece(xside,P,to + ReverseSquare[side]);
 	}
 	if(game_list[hply+1].promote == Q)
 	{
-		AddPiece(side,P,start);
-		RemovePiece(side,board[dest],dest);
+		AddPiece(side,P,from);
+		RemovePiece(side,board[to],to);
 	}
 	else
 	{
-		UpdatePiece(side,board[dest],dest,start);
+		UpdatePiece(side,board[to],to,from);
 	}
 	if (m->capture != EMPTY)
 	{
-		AddPiece(xside,m->capture,dest);
+		AddPiece(xside,m->capture,to);
 	}
-	if (abs(start - dest) == 2 && board[start] == K)
+	if (abs(from - to) == 2 && board[from] == K)
 	{
-		if(dest==G1)
+		if(to==G1)
 			UpdatePiece(side,R,F1,H1);
-		else if(dest==C1)
+		else if(to==C1)
 			UpdatePiece(side,R,D1,A1);
-		else if(dest==G8)
+		else if(to==G8)
 			UpdatePiece(side,R,F8,H8);
-		else if(dest==C8)
+		else if(to==C8)
 			UpdatePiece(side,R,D8,A8);
 	}
 }
@@ -226,21 +227,21 @@ doesn't include en passant capture and promotion.
 It the capture is illegal it is taken back.
 
 */
-bool MakeRecapture(const int start,const int dest)
+bool MakeRecapture(const int from,const int to)
 {	 
-	game_list[hply].start = start;
-	game_list[hply].dest = dest;
-	game_list[hply].capture = board[dest];
+	game_list[hply].from = from;
+	game_list[hply].to = to;
+	game_list[hply].capture = board[to];
 	ply++;
 	hply++;
 
-	board[dest] = board[start];
-	color[dest] = color[start];
-	board[start] = EMPTY;
-	color[start] = EMPTY;
+	board[to] = board[from];
+	color[to] = color[from];
+	board[from] = EMPTY;
+	color[from] = EMPTY;
 
-	if(board[dest]==K)
-		kingloc[side] = dest;
+	if(board[to]==K)
+		kingloc[side] = to;
 
 	side ^= 1;
 	xside ^= 1;
@@ -263,32 +264,33 @@ void UnMakeRecapture()
 	ply--;
 	hply--;
 
-	int start = game_list[hply].start;
-	int dest = game_list[hply].dest;
+	int from = game_list[hply].from;
+	int to = game_list[hply].to;
 
-	board[start] = board[dest];
-	color[start] = color[dest];
-	board[dest] = game_list[hply].capture;
-	color[dest] = xside;
+	board[from] = board[to];
+	color[from] = color[to];
+	board[to] = game_list[hply].capture;
+	color[to] = xside;
 
-	if(board[start]==K)
-		kingloc[side] = start;
+	if(board[from]==K)
+		kingloc[side] = from;
 }
 /*
 
-GetHistoryStart returns the start square for the move in the game list.
+GetHistoryStart returns the from square for the move in the game list.
 
 */
 int GetHistoryStart(const int n)
 {
-	return game_list[n].start;
+	return game_list[n].from;
 }
 /*
 
-GetHistoryDest returns the dest square for the move in the game list.
+GetHistoryDest returns the to square for the move in the game list.
 
 */
 int GetHistoryDest(const int n)
 {
-	return game_list[n].dest;
+	return game_list[n].to;
 }
+
