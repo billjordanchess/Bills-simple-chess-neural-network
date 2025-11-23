@@ -92,7 +92,7 @@ void GenEp()
 {
 	int ep = GetHistoryDest(hply - 1);
 
-	if(board[ep] == 0 && abs(GetHistoryStart(hply - 1) - ep) == 16)
+	if(board[ep] == P && abs(GetHistoryStart(hply - 1) - ep) == 16)
 	{
 		if(col[ep] > 0 && color[ep-1]==side && board[ep-1]==P)
 		{
@@ -112,7 +112,7 @@ there are no pieces in the way. Attacked squares are looked at in MakeMove.
 */
 void GenCastle()
 {
-	if(side==0)
+	if(side==WHITE)
 	{
 		if(game_list[hply].castle_k[side])
 		{
@@ -131,7 +131,6 @@ void GenCastle()
 	}
 	else
 	{
-
 		if(game_list[hply].castle_k[side])
 		{
 			if(board[F8] == EMPTY && board[G8] == EMPTY)
@@ -233,7 +232,7 @@ void GenRook(const int x,const int dir)
 }
 /*
 
-GenQueen generates queen moves and captures 
+GenQueen generates Queen moves and captures 
 for line. 
 
 */
@@ -282,8 +281,8 @@ The score is the history value.
 */
 void AddMove(const int x,const int sq)
 {
-	move_list[move_count].start = x;
-	move_list[move_count].dest = sq;
+	move_list[move_count].from = x;
+	move_list[move_count].to = sq;
 	move_list[move_count].score = history[x][sq];
 	move_count++;
 }
@@ -298,8 +297,8 @@ The score is also added and will be used in move ordering.
 */
 void AddCapture(const int x,const int sq,const int score)
 {
-	move_list[move_count].start = x;
-	move_list[move_count].dest = sq;
+	move_list[move_count].from = x;
+	move_list[move_count].to = sq;
 	move_list[move_count].score = score + CAPTURE_SCORE;
 	move_count++;
 }
