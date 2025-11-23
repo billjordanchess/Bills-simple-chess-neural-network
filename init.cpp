@@ -271,7 +271,7 @@ int rank[2][64];
 
 SetTables fills the square_score tables, king_endgame tables and passed tables with the individual piece tables.
 The value of each piece is added to the score for each square.
-The board is flipped for the Black scores.
+The board is flipped for the BLACK scores.
 
 */
 void SetTables()
@@ -445,3 +445,4 @@ void SetMoves()
 		king_moves[x][y] = -1;
 	}
 }
+
