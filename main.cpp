@@ -170,7 +170,6 @@ void ShowHelp()
 	cout << "load - Loads saved weights." << endl;
 	cout << "train or t - Trains the network." << endl;
 	cout << "quit - Quits the program." << endl;
-	cout << "xboard - Starts xboard." << endl;
 }
 
 /*
