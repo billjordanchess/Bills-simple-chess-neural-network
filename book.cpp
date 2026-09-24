@@ -94,7 +94,7 @@ void PlayOpening(int x)
 		if(verbose==1)
 		{
 			//Alg(start,dest);
-			//printf(" ");
+			//cout << " ");
 		}
 	}
 }

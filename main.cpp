@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <windows.h>
 #include <string.h>
-#include <iostream>
-#include <string>
-#include <fstream>
 #include <sys/timeb.h>
 
 using namespace std;
@@ -42,7 +39,9 @@ float GetLearningRate();
 
 void xboard();
 
-static int LoadDiagram(string file_name);
+void think2();
+
+int LoadDiagram(string file_name);
 
 int flip = 0;
 
@@ -60,12 +59,6 @@ static int board_color[64] =
 	0, 1, 0, 1, 0, 1, 0, 1
 };
 
-int fixed_time;
-int fixed_depth;
-int max_time;
-int start_time;
-int stop_time;
-int max_depth;
 int turn = 0;
 
 void NewGame();
@@ -79,8 +72,10 @@ void z();
 
 void PlayOpening(int);
 
-int Train();
+int Train(int);
 int PlayBatch(const int x, const int first, const int second);
+
+long long start_time;
 
 move_data engine_move;
 
@@ -102,15 +97,14 @@ int main()
 	string sText;
 
 	int number = 1;
+	int start_epochs = 0;
 
 	cout << " " << endl;
 	cout << "Deep Basic Chess Engine" << endl;
-	cout << "Version 1.1, 20/11/25" << endl;
+	cout << "Version 1.1, 27/11/25" << endl;
 	cout << "Copyright 2025 Bill Jordan" << endl;
 	cout << "Enter help for help." << endl;
 	cout << " " << endl;
-
-	fixed_time = 0;
 
 	//srand(1);
 
@@ -146,8 +140,18 @@ int main()
 		}
 		if (command == "load")
 		{
-			LoadWeights();
+			start_epochs = LoadWeights();
 			cout << "weights loaded" << endl;
+			if(start_epochs > 6)
+			    cout << "epochs " << start_epochs << endl;
+			continue;
+		}
+		if (command == "p")
+		{
+			hply = 10;
+			think2();
+			Alg(move_start, move_dest);
+			DisplayBoard();
 			continue;
 		}
 		if (command == "quit")
@@ -155,7 +159,12 @@ int main()
 		if (command == "train" || command == "t")
 		{
 			cout << "The training starts..." << endl;
-			Train();
+			Train(start_epochs);
+			continue;
+		}
+		if (command == "xboard")
+		{
+			xboard();
 			continue;
 		}
 	}
@@ -170,6 +179,7 @@ void ShowHelp()
 	cout << "load - Loads saved weights." << endl;
 	cout << "train or t - Trains the network." << endl;
 	cout << "quit - Quits the program." << endl;
+	cout << "xboard - Starts xboard." << endl;
 }
 
 /*
@@ -177,25 +187,23 @@ void ShowHelp()
 the student and the frozen opponent. Players swap sides after the first batch. Batches consist of
 100 games, each starting with a different opening line. This introduces variety into the games.
 <p>
-The student's net is updated move by move, by comparing the net's score with the target's score. 
+The student's net is updated move by move, by comparing the net's score with the target's score.
 The target's score is calculated by using a standard eval() function.
-The frozen opponent's net does not change, unless an update happens. 
+The frozen opponent's net does not change, unless an update happens.
 <p>
-This is followed by a 200-game match, in which no training happens. 
+This is followed by a 200-game match, in which no training happens.
 The student plays White in 100 games and Black in a 100 games.
 The student's percentage score is calculated.
 */
-int Train()
+int Train(int start_epochs)
 {
 	std::ofstream logfile("train_log.txt");
 	int result;
 	int updates = 0;
-	float rate = 0.9f;//0.99f
 	float threshold = 75.0f;//75 65 60.0f
 	float old_percent = 0.f;
 	int exceed = 0;
 	start_time = GetTime();
-	int start_epochs = 0;
 	float student_wins;
 	float frozen_wins;
 
@@ -247,8 +255,6 @@ int Train()
 				updates++;
 				UpdateBest();
 				UpdateOldWeights();
-				//SetLearningRate(rate);
-				//cout << "learning_rate " << GetLearningRate() << endl;
 				cout << "break " << endl;
 			}
 		}
@@ -279,7 +285,7 @@ int Train()
 	return 0;
 }
 /*
-Weights are saved to a file, after a training session has finished. 
+Weights are saved to a file, after a training session has finished.
 <b>PlayBatch()</b> plays 100 games. After each game,
 the average error is calculated.
 */
@@ -300,9 +306,6 @@ int PlayBatch(const int x, const int first, const int second)
 		result = GetResult();
 		if (result > 0)
 		{
-			//z();
-			//av = GetAverage();
-			//cout << "average error %f\n" <<  av);
 			return result;
 		}
 	}
@@ -315,7 +318,7 @@ void DisplayGame(int n)
 {
 	NewGame();
 	PlayOpening(n);
-	SetMaterial();//
+	SetMaterial();
 	while (true)
 	{
 		think(NN_PLAY);
@@ -341,7 +344,7 @@ For example, if a move is e1f1, the start square is four while the destination s
 It then checks to see if the move is legal by searching for it in the move list.
 
 */
-int ParseMove(char* s)
+int ParseMove(string s)
 {
 	int start, dest, i;
 
@@ -402,6 +405,7 @@ void DisplayBoard()
 			SetConsoleTextAttribute(hConsole, text);
 
 			cout << "  ";
+			
 			SetConsoleTextAttribute(hConsole, 15);
 			break;
 		case 0:
@@ -472,7 +476,7 @@ int GetResult()
 	SetMaterial();
 	if (pawn_mat[WHITE] == 0 && pawn_mat[BLACK] == 0 && piece_mat[WHITE] <= 300 && piece_mat[BLACK] <= 300)
 	{
-		//printf(" insuff ");
+		//cout << " insuff ");
 		return DRAWN;
 	}
 	if (pawn_mat[side] == 0 && piece_mat[side] == 0 &&
@@ -508,7 +512,7 @@ int GetResult()
 		}
 		else
 		{
-			//printf(" stale ");
+			//cout << " stale ");
 			return DRAWN;
 		}
 	}
@@ -522,17 +526,17 @@ int GetResult()
 	}
 	if (Reps() >= 3)
 	{
-		//printf(" rep ");
+		//cout << " rep ");
 		return DRAWN;
 	}
 	else if (fifty >= 100)
 	{
-		//printf(" 50 ");
+		//cout << " 50 ");
 		return DRAWN;
 	}
 	if (turn > 400)
 	{
-		//printf(" 400 ");
+		//cout << " 400 ");
 		return DRAWN;
 	}
 	return 0;
@@ -556,7 +560,7 @@ int Reps()
 <b>LoadDiagram()</b> loads a position from a <b>fen</b> file.
 
 */
-static int LoadDiagram(string file_name)
+int LoadDiagram(string file_name)
 {
 	ifstream file(file_name);
 	if (!file) {
@@ -645,9 +649,9 @@ static int LoadDiagram(string file_name)
 
 	NewPosition();
 	DisplayBoard();
+	//Gen();
+	hply = 8;
 
-	Gen();
-	//count++;
 	if (side == 0)
 		cout << "WHITE to move" << endl;
 	else
@@ -669,8 +673,6 @@ void SetUp()
 	Gen();
 	player[WHITE] = 0;
 	player[BLACK] = 0;
-	max_time = 1 << 25;
-	max_depth = 4;
 }
 /*
 
@@ -720,7 +722,7 @@ void SetMaterial()
 <b>GetTime()</b> gets the system time. This is used to help calculate how long it takes the engine to perform a task.
 
 */
-int GetTime()
+long long GetTime()
 {
 	struct timeb timebuffer;
 	ftime(&timebuffer);
@@ -762,3 +764,27 @@ char* MoveString(int start, int dest, int promote)
 	return str;
 }
 
+/*
+
+Alg displays a move.
+
+*/
+void Alg(int a, int b)
+{
+	Algebraic(a);
+	Algebraic(b);
+}
+/*
+
+Algebraic displays a square.
+e.g. 3 becomes col[3] + 96 which is ascii character 'd' and row[3]+1 which is '1'.
+Passing 3 returns 'd1'.
+
+*/
+void Algebraic(int a)
+{
+	if (a < 0 || a>63) return;
+	char c[2] = "a";
+	c[0] = 96 + 1 + col[a];
+	cout << c << row[a] + 1;
+}

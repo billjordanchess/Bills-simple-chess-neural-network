@@ -2,6 +2,8 @@
 #include <iomanip>
 #include <iostream>
 
+using namespace std;
+
 #include "globals.h"
 
 int input_list[32];
@@ -61,7 +63,7 @@ float best_hidden_bias[HIDDEN_SIZE];
 float best_hidden_weight[HIDDEN_SIZE];
 float best_output_bias;
 
-float learning_rate = 0.002f;//0.005â€“0.01
+float learning_rate = 0.002f;//0.002f
 
 float GetLearningRate()
 {
@@ -76,7 +78,7 @@ void SetLearningRate(float rate)
 void ReduceLearningRate()
 {
 	learning_rate *= 0.97f;
-	printf("learning_rate %f \n",learning_rate);
+	cout << "learning_rate" << learning_rate;
 }
 
 // Activation functions
@@ -107,11 +109,11 @@ void SetInput(int s, int ep)
 		game_list[hply].castle_k[WHITE] || game_list[hply].castle_q[WHITE] ||
 		game_list[hply].castle_k[BLACK] || game_list[hply].castle_q[BLACK];
 
-	const bool king_on_right = (col[kingloc[s]] > 3); // files eâ€“h
-	const bool do_lr_mirror  = (!king_on_right) && !any_castle && (ep == -1);
+	const bool king_on_right = (col[kingloc[s]] > 3); // files e–h
+	const bool king_on_left  = (!king_on_right) && !any_castle && (ep == -1);
 
 	if (s == 0) {
-		if (do_lr_mirror) {
+		if (king_on_left) {
 			for (int sq = 0; sq < 64; ++sq)
 				if (board[sq] != EMPTY)
 					input_list[list_count++] = index[s][color[sq]][board[sq]][Mirror[sq]];
@@ -121,7 +123,7 @@ void SetInput(int s, int ep)
 					input_list[list_count++] = index[s][color[sq]][board[sq]][sq];
 		}
 	} else {
-		if (do_lr_mirror) {
+		if (king_on_left) {
 			for (int sq = 0; sq < 64; ++sq)
 				if (board[sq] != EMPTY)
 					input_list[list_count++] = index[s][!color[sq]][board[sq]][Rotate[sq]];
@@ -140,7 +142,6 @@ int NN_Train(int s, float target)
 
 	BackProg(s,target, output, ep);
 
-	// ---- Return eval in centipawns (non-material) ----
 	return (int)(SCALE_CP * output);
 }
 
@@ -160,7 +161,6 @@ float ForwardProg(int s, int ep)
 		if (game_list[hply].castle_q[s]) sum += input_weight[CASTLE_STM_Q][i];
 
 		if (ep > -1) {
-			// no flip here under strategy A
 			sum += input_weight[ep_file[ep]][i];
 		}
 
@@ -187,7 +187,7 @@ void BackProg(int s, float target, float output, int ep)
 	// ---- Loss/gradients (Huber + linear output) ----
 	float error  = output - target_n;   // normalised units
 	float abs_e  = fabsf(error);
-	const float huber_delta = 0.25f;     // switch point (tune 0.5â€“2.0 if needed)
+	const float huber_delta = 0.25f;     // switch point (tune 0.5–2.0 if needed)
 	float delta_out;
 
 	if (abs_e <= huber_delta) {
@@ -357,7 +357,7 @@ int SaveWeights(int epochs)
 {
 	std::ofstream file("output.txt");
 	if (!file) {
-		std::cerr << "Could not open output.txt for writing.\n";
+		std::cerr << "Could not open output.txt for writing." << endl;
 		return 1;
 	}
 
@@ -392,7 +392,7 @@ int LoadWeights()
 {
 	std::ifstream file("output.txt");
 	if (!file) {
-		std::cerr << "File not found!\n";
+		std::cerr << "File not found!" << endl;
 		return 1;
 	}
 
@@ -402,7 +402,7 @@ int LoadWeights()
 	int epochs;
 
 	if (!(file >> epochs)) {
-		std::cerr << "Failed to read epochs header.\n";
+		cerr << "Failed to read epochs header." << endl;
 		return 2;
 	}
 
@@ -415,14 +415,12 @@ int LoadWeights()
 	for (int y = 0; y < HIDDEN_SIZE; ++y)
 		if (!(file >> hidden_weight[y])) return 4;
 
-	// hidden bias
 	for (int y = 0; y < HIDDEN_SIZE; ++y)
 		if (!(file >> hidden_bias[y])) return 5;
 
-	// output bias
 	if (!(file >> output_bias)) return 6;
 
-	return 0;
+	return epochs;
 }
 
 void UpdateBest()
@@ -482,19 +480,19 @@ void CompWeights()
 	{
 		for (int j = 0; j < HIDDEN_SIZE; ++j)
 		{
-			if(input_weight[i][j] != old_input_weight[i][j])// && input_weight[i][j] != NaN)
-				printf(" I %f %f ",input_weight[i][j], old_input_weight[i][j]);
+			if(input_weight[i][j] != old_input_weight[i][j])
+				cout << " I " << input_weight[i][j] << old_input_weight[i][j];
 		}
 	}
 	for (int i = 0; i < HIDDEN_SIZE; ++i)
 	{
 		if(hidden_bias[i] != old_hidden_bias[i])
-			printf("2");
+			cout << "2";
 		if(hidden_weight[i] != old_hidden_weight[i])
-			printf(" H %f %f ",hidden_weight[i], old_hidden_weight[i]);
+			cout << " H " << hidden_weight[i], old_hidden_weight[i];
 	}
 	if(output_bias != old_output_bias)
-		printf("4");
+		cout << "4";
 }
 
 int GetEpFile()

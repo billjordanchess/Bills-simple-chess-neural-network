@@ -293,4 +293,3 @@ int GetHistoryDest(const int n)
 {
 	return game_list[n].to;
 }
-

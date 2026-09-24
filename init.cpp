@@ -35,7 +35,7 @@ char piece_char[6] =
 
 int piece_value[6] = 
 {
-	100, 300, 300, 500, 900, 0
+	100, 300, 300, 500, 900, 10000
 };
 
 int init_color[64] = 
@@ -354,30 +354,6 @@ void NewPosition()
 }
 /*
 
-Alg displays a move.
-
-*/
-void Alg(int a,int b)
-{
-	Algebraic(a);
-	Algebraic(b);
-}
-/*
-
-Algebraic displays a square.
-e.g. 3 becomes col[3] + 96 which is ascii character 'd' and row[3]+1 which is '1'.
-Passing 3 returns 'd1'.
-
-*/
-void Algebraic(int a)
-{
-	if(a<0 || a>63) return; 
-	char c[2]="a";
-	c[0] =  96+1+col[a];
-	printf("%s%d",c,row[a]+1);
-}
-/*
-
 SetMoves creates the lookup tables for Knights, line-pieces and Kings.
 These will later be used to generate moves, captures and attacks.
 
@@ -445,4 +421,3 @@ void SetMoves()
 		king_moves[x][y] = -1;
 	}
 }
-

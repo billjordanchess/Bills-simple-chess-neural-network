@@ -169,6 +169,9 @@ float CaptureSearch()
 		from = move_list[i].from;
 		to = move_list[i].to;
 
+		//if (from == F3 && to == F7)
+		//	z();
+
 		if (best >= piece_value[board[to]])
 		{
 			return best;
@@ -199,8 +202,8 @@ int ReCaptureSearch(int a, const int sq)
 	int t = 0;
 	int score[12];
 
-	score[WHITE] = piece_value[board[sq]];
-	score[BLACK] = piece_value[board[a]];
+	score[0] = piece_value[board[sq]];
+	score[1] = piece_value[board[a]];
 
 	int total_score = 0;
 
@@ -252,11 +255,11 @@ int ReCaptureSearch(int a, const int sq)
 		t--;
 	}
 
-	if (total_score > score[WHITE])
-		return score[WHITE];
+	if (total_score > score[0])
+		return score[0];
 
-	if (total_score < score[WHITE] - score[BLACK])
-		return score[WHITE] - score[BLACK];
+	if (total_score < score[0] - score[1])
+		return score[0] - score[1];
 
 	return total_score;
 }
