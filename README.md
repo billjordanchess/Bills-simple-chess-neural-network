@@ -9,6 +9,8 @@ It is written entirely in C/C++. No external libraries are needed.
 
 I have attempted to make the code as simple as possible.
 
+I am currently cleaning up the code and will update some files when ready. 
+
 The engine features:
 <ul>
 <li>Move and attack generation.
