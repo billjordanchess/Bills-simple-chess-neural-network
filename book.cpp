@@ -67,7 +67,6 @@ int Book()
 			matches[m][1] = dest;
 			m++;
 		}
-
 	}
 
 	if (m == 0)
@@ -91,11 +90,6 @@ void PlayOpening(int x)
 		dest =  lines[x][y+2] - 'a';
 		dest += ((lines[x][y+3] - '0') - 1)*8;
 		MakeMove(start,dest);
-		if(verbose==1)
-		{
-			//Alg(start,dest);
-			//cout << " ");
-		}
 	}
 }
 
