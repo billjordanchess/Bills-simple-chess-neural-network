@@ -1,89 +1,105 @@
 #include "globals.h"
 
-U64 hash[2][6][64];
+bool LookUp(const int s);
+void AddHash(const int s, const move_data m);
+
+U64 hashkey[2][6][64];
 U64 lock[2][6][64];
 
-U64 currentkey,currentlock;
+U64 currentkey, currentlock;
 U64 collisions;
 
-const U64 MAXHASH =  5000000;
+const U64 MAXHASH = 5000000;
 const U64 HASHSIZE = 5000000;
 
-/*
+int hash_from, hash_to;
 
-RandomizeHash is called when the engine is started.
-The whitehash, blackhash, whitelock and blacklock tables
-are filled with random numbers.
+struct hashp
+{
+    U64 hashlock;
+    int from;
+    int to;
+};
 
-*/
+hashp* hashpos[2];
+
 void RandomizeHash()
 {
-	int p,x;
-	for(p=0;p<6;p++)
-		for(x=0;x<64;x++)
-		{
-			hash[WHITE][p][x] = Random(HASHSIZE);
-			hash[BLACK][p][x]= Random(HASHSIZE);
-			lock[WHITE][p][x]= Random(HASHSIZE);
-			lock[BLACK][p][x]= Random(HASHSIZE);
-		}
+    for (int p = 0; p < 6; p++)
+        for (int x = 0; x < 64; x++)
+        {
+            hashkey[WHITE][p][x] = Random(HASHSIZE);
+            hashkey[BLACK][p][x] = Random(HASHSIZE);
+            lock[WHITE][p][x] = Random(HASHSIZE);
+            lock[BLACK][p][x] = Random(HASHSIZE);
+        }
+    hashpos[WHITE] = new hashp[MAXHASH];
+    hashpos[BLACK] = new hashp[MAXHASH];
 }
-/*
 
-Random() generates a random number up to the size of x.
-
-*/
 int Random(const int x)
 {
-	return rand() % x;
+    return rand() % x;
 }
-/*
 
-AddKey updates the current key and lock.
-The key is a single number representing a position.
-Different positions may map to the same key.
-The lock is very similar to the key (its a second key), which 
-
-is a different number
-because it was seeded with different random numbers.
-While the odds of several positions having the same key are 
-very high, the odds of
-two positions having the same key and same lock are very very 
-low.
-
-*/
-void AddKey(const int s,const int p,const int x)
+void Free()//unused
 {
-	currentkey ^= hash[s][p][x];
-	currentlock ^= lock[s][p][x];
+    delete[] hashpos[WHITE];
+    delete[] hashpos[BLACK];
 }
-/*
 
-GetLock gets the current lock from a position.
+void AddKey(const int s, const int p, const int x)
+{
+    currentkey ^= hashkey[s][p][x];
+    currentlock ^= lock[s][p][x];
+}
 
-*/
 U64 GetLock()
 {
-	U64 loc=0;
-	for(int x=0;x<64;x++)
-	{
-		if(board[x]!=6)
-			loc ^= lock[color[x]][board[x]][x];
-	}
-	return loc;
+    U64 loc = 0;
+
+    for (int x = 0; x < 64; x++)
+    {
+        if (board[x] != EMPTY)
+        {
+            loc ^= lock[color[x]][board[x]][x];
+        }
+    }
+    return loc;
 }
-/*
 
-GetKey gets the current key from a position.
-
-*/
 U64 GetKey()
 {
-	U64 key=0;
-	for(int x=0;x<64;x++)
-	{
-		if(board[x]!=6)
-			key ^= hash[color[x]][board[x]][x];
-	}
-	return key;
+    U64 key = 0;
+    for (int x = 0; x < 64; x++)
+    {
+        if (board[x] != EMPTY)
+        {
+            key ^= hashkey[color[x]][board[x]][x];
+        }
+    }
+    return key;
+}
+
+void AddHash(const int s, const move_data m)
+{
+    U64 index = currentkey % MAXHASH;
+    hashp* ptr = &hashpos[s][index];
+    ptr->hashlock = currentlock;
+    ptr->from = m.from;
+    ptr->to = m.to;
+}
+
+bool LookUp(const int s)
+{
+    U64 index = currentkey % MAXHASH;
+    if (hashpos[s][index].hashlock != currentlock)
+    {
+        collisions++;
+        return false;
+    }
+
+    hash_from = hashpos[s][currentkey].from;
+    hash_to = hashpos[s][currentkey].to;
+    return true;
 }
