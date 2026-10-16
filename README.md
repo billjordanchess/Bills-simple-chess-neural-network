@@ -9,18 +9,19 @@ It is written entirely in C/C++. No external libraries are needed.
 
 I have attempted to make the code as simple as possible.
 
-I am currently cleaning up the code and will update some files when ready. 
+I have recompiled the program as 64-bit. The extra speed helped speed up training. 
 
 The engine features:
 <ul>
 <li>Move and attack generation.
 <li>An internal opening book.
 <li>Mate and draw detection, including draws by stalemate, repetition, the 50 move reduction of material.
-<li>Unsupervised training with self-play. No external data files are needed.  
+<li>Training with self-play. No external data files are needed.  
 <li>Forward and backpropagation.
 <li>Weights may be saved and later loaded.
-<li>.fen files may be loaded.
+<li>FEN files may be loaded.
+<li>Winboard compatibility which enables it to run with Arena. Arena is a popular program for running chess engines.
 </ul>
 
-There is an eBook explaining the program at https://www.amazon.com/dp/B0FPRJN8MW 
+My Amazon ebook and paperback "How to Write a 64-bit Chess Neural Network" will be available soon.
 It includes a solid introduction to neural networks in general. 
