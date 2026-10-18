@@ -23,5 +23,5 @@ The engine features:
 <li>Winboard compatibility which enables it to run with Arena. Arena is a popular program for running chess engines.
 </ul>
 
-My Amazon ebook and paperback "How to Write a 64-bit Chess Neural Network" will be available soon.
+My Amazon ebook and paperback "How to Write a Chess Neural Network" is now available.
 It includes a solid introduction to neural networks in general. 
