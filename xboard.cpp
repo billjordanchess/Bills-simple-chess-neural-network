@@ -7,7 +7,7 @@
 
 using namespace std;
 
-#include "globals.h"//18/10
+#include "globals.h"
 
 void NewGame();
 void SetMaterial();
