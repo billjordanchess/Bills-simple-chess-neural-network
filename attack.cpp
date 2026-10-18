@@ -1,4 +1,4 @@
-#include "globals.h"//18/10
+#include "globals.h"
 
 int LineCheck(const int s, const int sq, const int d, const int p);
 bool LineCheck2(const int s, const int sq, const int d, const int p1, const int p2);
