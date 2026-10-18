@@ -1,4 +1,4 @@
-#include "globals.h"//18/10
+#include "globals.h"
 
 int px[6] = { 0,10,20,30,40,0 };
 int nx[6] = { -3,7,17,27,37,0 };
