@@ -2,7 +2,7 @@
 #include <sys/timeb.h>
 #include <fstream>
 
-#include "globals.h"//18/10
+#include "globals.h"
 
 #define WHITE_WIN 1
 #define BLACK_WIN 2
