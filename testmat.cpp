@@ -11,7 +11,7 @@
 #include "ctime"
 #include "cstring"
 
-#include "globals.h"//18/10
+#include "globals.h"
 
 const int INPUT_SIZE = 30;
 const int HIDDEN_SIZE = 16;
