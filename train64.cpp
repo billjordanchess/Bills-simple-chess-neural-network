@@ -1,12 +1,8 @@
-#include "globals.h"
-
-#if LAYERS == 1
-
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
-using namespace std;
+#include "globals.h"
 
 int input_list[32];
 int list_count;
@@ -342,5 +338,3 @@ int GetEpFile()
     }
     return -1;
 }
-
-#endif
