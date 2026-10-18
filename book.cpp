@@ -1,4 +1,4 @@
-#include "globals.h"//18/10
+#include "globals.h"
 
 char lines[100][80];
 move_data book_list[MOVE_STACK];
