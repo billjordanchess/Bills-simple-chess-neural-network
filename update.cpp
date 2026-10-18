@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "globals.h"//18/10
 
 int ReverseSquare[2] = { -8,8 };
 

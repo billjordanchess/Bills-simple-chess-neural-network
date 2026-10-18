@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "globals.h"//18/10
 
 const int ISOLATED = 20;
 

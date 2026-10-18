@@ -1,4 +1,6 @@
-#include "globals.h"
+#include "globals.h"//18/10
+
+#if LAYERS == 1
 
 #include <fstream>
 #include <iomanip>
@@ -264,13 +266,13 @@ void InitWeights()
 
 int SaveWeights(int epochs, U64 time)
 {
-    std::ofstream file("weights64.txt");
+    ofstream file("weights64.txt");
     if (!file) {
-        std::cerr << "Could not open weights64.txt for writing." << endl;
+        cerr << "Could not open weights64.txt for writing." << endl;
         return 1;
     }
 
-    file.imbue(std::locale::classic());
+    file.imbue(locale::classic());
     file << epochs << '\n';
     file << time << '\n';
 
@@ -291,13 +293,13 @@ int SaveWeights(int epochs, U64 time)
 
 int LoadWeights()
 {
-    std::ifstream file("weights64.txt");
+    ifstream file("weights64.txt");
     if (!file) {
-        std::cerr << "weights64.txt not found!" << endl;
+        cerr << "weights64.txt not found!" << endl;
         return 1;
     }
 
-    file.imbue(std::locale::classic());
+    file.imbue(locale::classic());
 
     int epochs;
 
@@ -340,3 +342,5 @@ int GetEpFile()
     }
     return -1;
 }
+
+#endif

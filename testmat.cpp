@@ -11,6 +11,8 @@
 #include "ctime"
 #include "cstring"
 
+#include "globals.h"//18/10
+
 const int INPUT_SIZE = 30;
 const int HIDDEN_SIZE = 16;
 const int OUTPUT_SIZE = 1;
@@ -29,7 +31,7 @@ float ReLU_deriv(float x) {
 }
 
 float tanh_activation(float x) {
-    return std::tanh(x);
+    return tanh(x);
 }
 
 float tanh_derivative_from_output(float y) {
@@ -141,8 +143,8 @@ int TestMat()
                 output_raw += hidden_weight[0][i] * hidden[i];
             }
             float output = tanh_activation(output_raw);
-            std::cout << "Epoch " << epoch
-                << ", Avg Loss: " << std::fixed << std::setprecision(6) << loss_total / TRAINING_SAMPLES
+            cout << "Epoch " << epoch
+                << ", Avg Loss: " << fixed << setprecision(6) << loss_total / TRAINING_SAMPLES
                 << ", Target: " << target
                 << ", Output: " << output << "\n";
         }

@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "globals.h"//18/10
 
 int side, xside;
 int fifty;

@@ -1,8 +1,4 @@
-#include <setjmp.h>
-
-using namespace std;
-
-#include "globals.h"
+#include "globals.h"//18/10
 
 int NN_Play(const int);
 int NN_Train(const int, const int);

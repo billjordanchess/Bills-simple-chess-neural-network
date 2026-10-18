@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "globals.h"//18/10
 
 bool LookUp(const int s);
 void AddHash(const int s, const move_data m);

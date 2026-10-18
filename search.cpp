@@ -2,7 +2,7 @@
 
 using namespace std;
 
-#include "globals.h"
+#include "globals.h"//18/10
 
 const int MARGIN = 100;
 

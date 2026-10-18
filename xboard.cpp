@@ -1,7 +1,4 @@
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -10,7 +7,7 @@
 
 using namespace std;
 
-#include "globals.h"
+#include "globals.h"//18/10
 
 void NewGame();
 void SetMaterial();

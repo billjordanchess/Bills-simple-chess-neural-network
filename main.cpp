@@ -1,12 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <windows.h>
-#include <string.h>
 #include <sys/timeb.h>
+#include <fstream>
 
-using namespace std;
-
-#include "globals.h"
+#include "globals.h"//18/10
 
 #define WHITE_WIN 1
 #define BLACK_WIN 2
@@ -43,6 +39,7 @@ void xboard();
 void think();
 int LoadDiagram(string file_name);
 int TestMat();
+int Reps();
 
 int flip = 0;
 int turn = 0;
@@ -54,13 +51,15 @@ int epochs = 0;
 int highest_match = 0;
 int lowest_diff = 1000000;
 
-std::ofstream logfile("train_log.txt");
+ofstream logfile("train_log.txt");
 
 int move_start, move_dest;
 void z();
 
 void PlayOpening(int);
 int PlayGame(const int x, const int first, const int second);
+
+void play(int nn);
 
 move_data engine_move;
 
@@ -84,7 +83,7 @@ int main()
 
     cout << " " << endl;
     cout << "Deep Basic Chess Engine" << endl;
-    cout << "Version 1.2, 1/10/26" << endl;
+    cout << "Version 1.3, 18/10/26" << endl;
     cout << "Copyright 2026 Bill Jordan" << endl;
     cout << "Enter help for help." << endl;
     cout << " " << endl;
@@ -277,8 +276,8 @@ void Train(int start_epoch, int epoch_number)
         cout << "lowest centipawns diff " << lowest_diff << endl;
         cout << endl;
         logfile << "epochs " << epochs << " draws " << draws << endl;
-        logfile << "student wins " << student_wins / 2 << " teacher wins " << teacher_wins / 2 << std::endl;
-        logfile << "percent " << percent << " highest percent " << highest_percent << std::endl;
+        logfile << "student wins " << student_wins / 2 << " teacher wins " << teacher_wins / 2 << endl;
+        logfile << "percent " << percent << " highest percent " << highest_percent << endl;
     }
     SaveWeights(epochs, 0);
     cout << "Weights saved." << endl;
@@ -732,12 +731,12 @@ void DisplayBoard()
         if (flip == 0)
         {
             if ((j + 1) % 8 == 0 && j != 63)
-                cout << std::endl << row[i];
+                cout << endl << row[i];
         }
         else
         {
             if ((j + 1) % 8 == 0 && row[i] != 7)
-                cout << std::endl << row[j] + 2;
+                cout << endl << row[j] + 2;
         }
     }
     if (flip == 0)
