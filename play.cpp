@@ -1,4 +1,4 @@
-#include "globals.h"//18/10
+#include "globals.h"
 
 int NN_Play(const int);
 int NN_Train(const int, const int);
