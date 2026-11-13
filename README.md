@@ -23,6 +23,17 @@ The engine features:
 <li>Winboard compatibility which enables it to run with Arena. Arena is a popular program for running chess engines.
 </ul>
 
+This was created using MS Visual Studio 2019.
+
+<ul>
+<li>MS Visual Studio will need to be installed.
+<li>Create a new folder where you want to extract the project.
+<li>Select the Code Button and select <b>Download zip</b>.
+<li>Extract the zip file into the new folder.
+<li>Open the solution file.
+<li>Build and Run.
+</ul>
+
 My Amazon ebook and paperback "How to Write a Chess Neural Network" is now available.
 It includes a solid introduction to neural networks in general. 
 
