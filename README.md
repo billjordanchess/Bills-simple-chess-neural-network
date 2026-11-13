@@ -25,3 +25,5 @@ The engine features:
 
 My Amazon ebook and paperback "How to Write a Chess Neural Network" is now available.
 It includes a solid introduction to neural networks in general. 
+
+https://www.amazon.com/dp/B0HNHX1B2J?lv=shuf&channelId=500&plpRedirect=mhFallback&th=1
